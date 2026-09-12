@@ -190,6 +190,16 @@ class SoundManager {
       timeOffset += note.dur + 0.1;
     });
   }
+
+  // Ambient playback hook for scenes (safely plays music and atmospheric ambient)
+  public playAmbient(theme?: "ocean" | "aurora" | "sakura" | "waterfall" | "rain" | "quiet") {
+    if (!this.isMusicPlaying && !this.isMuted) {
+      this.playMusic();
+    }
+    if (theme === "sakura" || theme === "quiet") {
+      this.playSynthesizedIWannaBeYours();
+    }
+  }
 }
 
 export const soundManager = new SoundManager();
