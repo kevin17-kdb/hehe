@@ -28,20 +28,6 @@ export default function NYCScene({ onComplete }: NYCSceneProps) {
       delay: Math.random() * 2,
     }));
     setWordPositions(positions);
-
-    // After 12s transition to thoughtful reflection (accelerated from 30s so user isn't stuck waiting too long, but with a skip option)
-    const timer1 = setTimeout(() => {
-      setPhase("thought");
-    }, 8000);
-
-    const timer2 = setTimeout(() => {
-      setPhase("vulnerable");
-    }, 16000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
   }, [words]);
 
   return (
@@ -74,10 +60,14 @@ export default function NYCScene({ onComplete }: NYCSceneProps) {
           ))}
 
           <button
-            onClick={() => setPhase("thought")}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-neutral-400 hover:text-white underline cursor-pointer"
+            onClick={() => {
+              soundManager.playChime("click");
+              setPhase("thought");
+            }}
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-sky-500/20 to-teal-500/20 border border-sky-400/40 hover:border-sky-400 text-xs font-medium text-sky-200 hover:text-white transition-all shadow-[0_0_15px_rgba(56,189,248,0.3)] cursor-pointer"
           >
-            Continue quietly →
+            <span>NEXT</span>
+            <ArrowRight className="w-3.5 h-3.5 text-sky-300" />
           </button>
         </div>
       )}
@@ -93,11 +83,14 @@ export default function NYCScene({ onComplete }: NYCSceneProps) {
           </p>
 
           <button
-            onClick={() => setPhase("vulnerable")}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full glass-card-subtle text-xs text-sky-200 hover:text-white transition-colors cursor-pointer mt-4"
+            onClick={() => {
+              soundManager.playChime("click");
+              setPhase("vulnerable");
+            }}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-sky-500/30 to-indigo-500/30 border border-sky-400/50 hover:border-sky-400 text-xs font-medium text-sky-200 hover:text-white transition-all shadow-[0_0_20px_rgba(56,189,248,0.3)] cursor-pointer mt-4"
           >
-            <span>Listen deeper</span>
-            <ArrowRight className="w-3.5 h-3.5 text-sky-400" />
+            <span>NEXT</span>
+            <ArrowRight className="w-3.5 h-3.5 text-sky-300" />
           </button>
         </div>
       )}
