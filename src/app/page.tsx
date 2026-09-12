@@ -84,10 +84,20 @@ export default function Home() {
       <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
         <button
           onClick={toggleSound}
-          className="p-2.5 rounded-full glass-panel hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer transition-colors shadow-lg"
-          title={isMuted ? "Unmute sound" : "Mute sound"}
+          className="flex items-center gap-2 px-3 py-2 rounded-full glass-panel hover:bg-white/10 text-neutral-200 cursor-pointer transition-colors shadow-lg text-xs"
+          title={isMuted ? "Unmute Music" : "Mute Music"}
         >
-          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-sky-400" />}
+          {isMuted ? (
+            <>
+              <VolumeX className="w-4 h-4 text-neutral-400" />
+              <span className="hidden sm:inline text-neutral-400">Muted</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-4 h-4 text-rose-400 animate-pulse" />
+              <span className="hidden sm:inline text-rose-200 font-serif italic">♪ I Wanna Be Yours</span>
+            </>
+          )}
         </button>
 
         {progress.currentStage !== "opening" && (

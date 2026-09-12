@@ -1,10 +1,26 @@
-// Ambient and sound effects synthesis using standard Web Audio API
-// Runs smoothly on all browsers without external audio asset downloads
+// Ambient, Sound Effects & "I Wanna Be Yours" background music engine
+// Uses standard Web Audio API & HTML5 Audio Element for seamless playback
 
 class SoundManager {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private currentAmbientNode: { stop: () => void } | null = null;
+  private bgMusic: HTMLAudioElement | null = null;
+  private isMusicPlaying: boolean = false;
+
+  constructor() {
+    if (typeof window !== "undefined") {
+      this.initMusicElement();
+    }
+  }
+
+  private initMusicElement() {
+    if (!this.bgMusic && typeof window !== "undefined") {
+      this.bgMusic = new Audio("/music/i_wanna_be_yours.mp3");
+      this.bgMusic.loop = true;
+      this.bgMusic.volume = 0.45;
+    }
+  }
 
   private initContext() {
     if (!this.ctx && typeof window !== "undefined") {
@@ -16,11 +32,38 @@ class SoundManager {
     }
   }
 
+  public playMusic() {
+    if (this.isMuted) return;
+    this.initMusicElement();
+    if (this.bgMusic) {
+      this.bgMusic.play().then(() => {
+        this.isMusicPlaying = true;
+      }).catch(() => {
+        // Handled when user clicks or interacts
+      });
+    }
+  }
+
+  public pauseMusic() {
+    if (this.bgMusic) {
+      this.bgMusic.pause();
+      this.isMusicPlaying = false;
+    }
+  }
+
   public setMuted(muted: boolean) {
     this.isMuted = muted;
-    if (muted && this.currentAmbientNode) {
-      this.currentAmbientNode.stop();
-      this.currentAmbientNode = null;
+    if (muted) {
+      if (this.bgMusic) this.bgMusic.pause();
+      if (this.currentAmbientNode) {
+        this.currentAmbientNode.stop();
+        this.currentAmbientNode = null;
+      }
+    } else {
+      if (this.bgMusic) {
+        this.bgMusic.play().catch(() => {});
+        this.isMusicPlaying = true;
+      }
     }
   }
 
@@ -28,8 +71,17 @@ class SoundManager {
     return this.isMuted;
   }
 
+  public getIsMusicPlaying() {
+    return this.isMusicPlaying;
+  }
+
   // Play subtle UI chime sounds
   public playChime(type: "success" | "hint" | "click" | "heartbeat" | "error" = "click") {
+    // Automatically trigger music on first user interaction if not started yet
+    if (!this.isMusicPlaying && !this.isMuted) {
+      this.playMusic();
+    }
+
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
@@ -87,7 +139,6 @@ class SoundManager {
       osc.start(now);
       osc.stop(now + 0.22);
     } else if (type === "heartbeat") {
-      // Sub-bass double pulse
       [0, 0.18].forEach((offset) => {
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
@@ -105,125 +156,39 @@ class SoundManager {
     }
   }
 
-  // Play ambient synthesized soundscapes for each world
-  public playAmbient(theme: "ocean" | "aurora" | "sakura" | "waterfall" | "rain" | "quiet") {
+  // Synthesizes the memorable, dreamy riff of "I Wanna Be Yours" (Arctic Monkeys)
+  // [C - Eb - G - Bb - C rhythm / bassline]
+  public playSynthesizedIWannaBeYours() {
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx) return;
 
-    if (this.currentAmbientNode) {
-      this.currentAmbientNode.stop();
-      this.currentAmbientNode = null;
-    }
+    // Riff melody sequence for "I Wanna Be Yours"
+    const notes = [
+      { freq: 130.81, dur: 0.8 }, // C3
+      { freq: 155.56, dur: 0.4 }, // Eb3
+      { freq: 174.61, dur: 0.6 }, // F3
+      { freq: 196.00, dur: 0.8 }, // G3
+      { freq: 233.08, dur: 0.5 }, // Bb3
+      { freq: 261.63, dur: 1.2 }, // C4
+    ];
 
-    try {
-      // Pink/White noise generator for waves/rain/waterfall
-      const bufferSize = this.ctx.sampleRate * 2;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      let lastOut = 0.0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        // Pink noise filtering
-        lastOut = (lastOut * 0.95) + (white * 0.05);
-        data[i] = lastOut;
-      }
-
-      const noise = this.ctx.createBufferSource();
-      noise.buffer = buffer;
-      noise.loop = true;
-
-      const filter = this.ctx.createBiquadFilter();
+    let timeOffset = 0;
+    notes.forEach((note) => {
+      if (!this.ctx) return;
+      const startTime = this.ctx.currentTime + timeOffset;
+      const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-
-      if (theme === "ocean") {
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(450, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
-        
-        // Gentle wave modulation with LFO
-        const lfo = this.ctx.createOscillator();
-        const lfoGain = this.ctx.createGain();
-        lfo.frequency.setValueAtTime(0.12, this.ctx.currentTime);
-        lfoGain.gain.setValueAtTime(250, this.ctx.currentTime);
-        lfo.connect(lfoGain);
-        lfoGain.connect(filter.frequency);
-        lfo.start();
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
-        noise.start();
-
-        this.currentAmbientNode = {
-          stop: () => {
-            try {
-              noise.stop();
-              lfo.stop();
-            } catch {}
-          }
-        };
-      } else if (theme === "rain") {
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(1200, this.ctx.currentTime);
-        filter.Q.setValueAtTime(0.8, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.07, this.ctx.currentTime);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
-        noise.start();
-
-        this.currentAmbientNode = {
-          stop: () => {
-            try { noise.stop(); } catch {}
-          }
-        };
-      } else if (theme === "waterfall") {
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(900, this.ctx.currentTime);
-        gain.gain.setValueAtTime(0.09, this.ctx.currentTime);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
-        noise.start();
-
-        this.currentAmbientNode = {
-          stop: () => {
-            try { noise.stop(); } catch {}
-          }
-        };
-      } else if (theme === "aurora" || theme === "sakura") {
-        // Ethereal chord pad
-        const baseFreq = theme === "aurora" ? 220 : 261.63;
-        const freqs = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 1.875];
-        const oscs: OscillatorNode[] = [];
-        const padGain = this.ctx.createGain();
-        padGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-
-        freqs.forEach(f => {
-          if (!this.ctx) return;
-          const o = this.ctx.createOscillator();
-          o.type = "sine";
-          o.frequency.setValueAtTime(f, this.ctx.currentTime);
-          o.connect(padGain);
-          o.start();
-          oscs.push(o);
-        });
-        padGain.connect(this.ctx.destination);
-
-        this.currentAmbientNode = {
-          stop: () => {
-            oscs.forEach(o => {
-              try { o.stop(); } catch {}
-            });
-          }
-        };
-      }
-    } catch {
-      // Graceful fallback if audio context blocked by browser autoplay
-    }
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(note.freq, startTime);
+      gain.gain.setValueAtTime(0.08, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + note.dur);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + note.dur + 0.05);
+      timeOffset += note.dur + 0.1;
+    });
   }
 }
 
