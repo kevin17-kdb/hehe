@@ -45,6 +45,10 @@ export default function Home() {
 
     // Browsers block autoplay until the user first clicks or taps
     const startAudioOnInteraction = () => {
+      const audio = document.getElementById("bg-music-player") as HTMLAudioElement | null;
+      if (audio) {
+        audio.play().catch(() => {});
+      }
       soundManager.playMusic();
       window.removeEventListener("click", startAudioOnInteraction);
       window.removeEventListener("keydown", startAudioOnInteraction);
@@ -88,6 +92,14 @@ export default function Home() {
     const next = !isMuted;
     setIsMuted(next);
     soundManager.setMuted(next);
+    const audio = document.getElementById("bg-music-player") as HTMLAudioElement | null;
+    if (audio) {
+      if (next) {
+        audio.pause();
+      } else {
+        audio.play().catch(() => {});
+      }
+    }
   };
 
   if (!progress) {
@@ -137,15 +149,15 @@ export default function Home() {
         )}
       </div>
 
-      {/* Arctic Monkeys - I Wanna Be Yours Official Audio Stream */}
-      {!isMuted && (
-        <iframe
-          src="https://www.youtube.com/embed/nyuo9-OjNNg?autoplay=1&loop=1&playlist=nyuo9-OjNNg&enablejsapi=1"
-          allow="autoplay"
-          className="hidden w-0 h-0 pointer-events-none opacity-0"
-          title="Arctic Monkeys - I Wanna Be Yours"
-        />
-      )}
+      {/* Arctic Monkeys - I Wanna Be Yours Original Audio File */}
+      <audio
+        id="bg-music-player"
+        src="/music/i_wanna_be_yours.mp3"
+        loop
+        autoPlay
+        playsInline
+        muted={isMuted}
+      />
 
       {/* Transition Overlay */}
       <div
