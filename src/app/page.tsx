@@ -42,6 +42,24 @@ export default function Home() {
       // Always start fresh from the opening poem
       setProgress(initialProgress);
     }
+
+    // Browsers block autoplay until the user first clicks or taps
+    const startAudioOnInteraction = () => {
+      soundManager.playMusic();
+      window.removeEventListener("click", startAudioOnInteraction);
+      window.removeEventListener("keydown", startAudioOnInteraction);
+      window.removeEventListener("touchstart", startAudioOnInteraction);
+    };
+
+    window.addEventListener("click", startAudioOnInteraction);
+    window.addEventListener("keydown", startAudioOnInteraction);
+    window.addEventListener("touchstart", startAudioOnInteraction);
+
+    return () => {
+      window.removeEventListener("click", startAudioOnInteraction);
+      window.removeEventListener("keydown", startAudioOnInteraction);
+      window.removeEventListener("touchstart", startAudioOnInteraction);
+    };
   }, []);
 
   const updateStage = (nextStage: GameStage) => {
