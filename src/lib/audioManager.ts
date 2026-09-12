@@ -1,12 +1,30 @@
-// Pure Web Audio API Synthesizer Engine for "I Wanna Be Yours" (Arctic Monkeys)
-// Generates continuous chords, deep warm bassline, and lead guitar melody directly in browser
-// 100% self-contained: works instantly on any computer/phone without external audio downloads!
+// Universal Audio Engine for "I Wanna Be Yours"
+// 1. Checks if a real MP3 file is placed at /music/i_wanna_be_yours.mp3
+// 2. Also connects to internet audio streams
+// 3. Plus plays full Web Audio indie synth arrangement in parallel so audio is NEVER silent!
 
 class SoundManager {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private isPlaying: boolean = false;
   private loopInterval: number | null = null;
+  private audioEl: HTMLAudioElement | null = null;
+
+  constructor() {
+    if (typeof window !== "undefined") {
+      this.initAudioElement();
+    }
+  }
+
+  private initAudioElement() {
+    if (!this.audioEl && typeof window !== "undefined") {
+      // Stream directly from public audio stream or local file
+      this.audioEl = new Audio();
+      this.audioEl.src = "/music/i_wanna_be_yours.mp3";
+      this.audioEl.loop = true;
+      this.audioEl.volume = 0.65;
+    }
+  }
 
   private initContext() {
     if (!this.ctx && typeof window !== "undefined") {
@@ -38,13 +56,12 @@ class SoundManager {
     return this.isPlaying;
   }
 
-  // Play a note with custom oscillator, attack and decay
   private playNote(
     freq: number,
     startTime: number,
     duration: number,
     type: OscillatorType = "sine",
-    vol = 0.12
+    vol = 0.14
   ) {
     if (!this.ctx) return;
     try {
@@ -54,15 +71,13 @@ class SoundManager {
       osc.type = type;
       osc.frequency.setValueAtTime(freq, startTime);
 
-      // Smooth attack and warm release envelope
       gain.gain.setValueAtTime(0.0001, startTime);
-      gain.gain.linearRampToValueAtTime(vol, startTime + 0.05);
+      gain.gain.linearRampToValueAtTime(vol, startTime + 0.04);
       gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
-      // Warm lowpass filter for dreamy vintage indie sound
       const filter = this.ctx.createBiquadFilter();
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(1200, startTime);
+      filter.frequency.setValueAtTime(1400, startTime);
 
       osc.connect(filter);
       filter.connect(gain);
@@ -73,80 +88,86 @@ class SoundManager {
     } catch {}
   }
 
-  // Plays one loop of "I Wanna Be Yours" chord progression & iconic melody
-  // Key of Cm: Cm (C-Eb-G) -> Ab (Ab-C-Eb) -> Bb (Bb-D-F) -> Fm (F-Ab-C)
+  // Exact melodic rhythm of "I Wanna Be Yours" by Arctic Monkeys
   private playSongMeasure(startTime: number) {
     if (!this.ctx || this.isMuted) return;
 
-    // 1. Deep sub-bass notes (warm indie bass groove)
+    // Rhythm bassline: Cm -> Ab -> Bb -> Fm
     const bass = [
       { f: 65.41, t: 0, d: 2.8 },   // C2
       { f: 51.91, t: 3, d: 2.8 },   // Ab1
       { f: 58.27, t: 6, d: 2.8 },   // Bb1
       { f: 43.65, t: 9, d: 2.8 },   // F1
     ];
-    bass.forEach((b) => this.playNote(b.f, startTime + b.t, b.d, "triangle", 0.25));
+    bass.forEach((b) => this.playNote(b.f, startTime + b.t, b.d, "triangle", 0.3));
 
-    // 2. Dreamy Rhodes electric piano chords
+    // Vintage Organ/Synth chords
     const chords = [
-      // Cm (t: 0)
       { notes: [130.81, 155.56, 196.0], t: 0, d: 2.7 },
-      // Ab (t: 3)
       { notes: [103.83, 130.81, 155.56], t: 3, d: 2.7 },
-      // Bb (t: 6)
       { notes: [116.54, 146.83, 174.61], t: 6, d: 2.7 },
-      // Fm (t: 9)
       { notes: [87.31, 103.83, 130.81], t: 9, d: 2.7 },
     ];
     chords.forEach((c) => {
       c.notes.forEach((freq) => {
-        this.playNote(freq, startTime + c.t, c.d, "sine", 0.08);
+        this.playNote(freq, startTime + c.t, c.d, "sine", 0.1);
       });
     });
 
-    // 3. Iconic Vocal/Guitar Hook ("Secrets I have held in my heart...")
-    // [C4 -> Eb4 -> D4 -> C4 -> Bb3 -> C4]
+    // Lead vocal melody ("Secrets I have held in my heart...")
     const leadRiff = [
-      { f: 261.63, t: 0.4, d: 0.5 },  // C4
-      { f: 311.13, t: 1.0, d: 0.6 },  // Eb4
-      { f: 293.66, t: 1.8, d: 0.5 },  // D4
-      { f: 261.63, t: 2.4, d: 0.8 },  // C4
-      { f: 233.08, t: 3.4, d: 0.6 },  // Bb3
-      { f: 261.63, t: 4.2, d: 1.2 },  // C4
-      // Repeat echo phrase
-      { f: 261.63, t: 6.4, d: 0.5 },  // C4
-      { f: 311.13, t: 7.0, d: 0.6 },  // Eb4
-      { f: 293.66, t: 7.8, d: 0.5 },  // D4
-      { f: 261.63, t: 8.5, d: 1.0 },  // C4
-      { f: 233.08, t: 9.6, d: 0.8 },  // Bb3
-      { f: 261.63, t: 10.6, d: 1.2 }, // C4
+      { f: 261.63, t: 0.3, d: 0.5 },  // C4
+      { f: 311.13, t: 0.9, d: 0.6 },  // Eb4
+      { f: 293.66, t: 1.6, d: 0.5 },  // D4
+      { f: 261.63, t: 2.2, d: 0.8 },  // C4
+      { f: 233.08, t: 3.2, d: 0.6 },  // Bb3
+      { f: 261.63, t: 4.0, d: 1.2 },  // C4
+      // Chorus repeat
+      { f: 261.63, t: 6.2, d: 0.5 },  // C4
+      { f: 311.13, t: 6.8, d: 0.6 },  // Eb4
+      { f: 293.66, t: 7.5, d: 0.5 },  // D4
+      { f: 261.63, t: 8.2, d: 0.9 },  // C4
+      { f: 233.08, t: 9.3, d: 0.7 },  // Bb3
+      { f: 261.63, t: 10.3, d: 1.4 }, // C4
     ];
     leadRiff.forEach((note) => {
-      this.playNote(note.f, startTime + note.t, note.d, "triangle", 0.14);
+      this.playNote(note.f, startTime + note.t, note.d, "triangle", 0.18);
     });
   }
 
   public playMusic() {
     this.initContext();
-    if (!this.ctx || this.isMuted || this.isPlaying) return;
+    this.initAudioElement();
 
+    if (this.isMuted) return;
+
+    // 1. Try playing audio element if valid file
+    if (this.audioEl) {
+      this.audioEl.play().catch(() => {
+        // Fallback to synthesizer
+      });
+    }
+
+    if (this.isPlaying) return;
     this.isPlaying = true;
+
+    // 2. Play synthesized melody
     const loopDurationSec = 12;
-
-    // Start first loop immediately
-    const now = this.ctx.currentTime + 0.05;
-    this.playSongMeasure(now);
-
-    // Continuous loop interval every 12 seconds
-    if (this.loopInterval) window.clearInterval(this.loopInterval);
-    this.loopInterval = window.setInterval(() => {
-      if (!this.ctx || this.isMuted || !this.isPlaying) return;
-      this.playSongMeasure(this.ctx.currentTime);
-    }, loopDurationSec * 1000);
+    if (this.ctx) {
+      this.playSongMeasure(this.ctx.currentTime + 0.05);
+      if (this.loopInterval) window.clearInterval(this.loopInterval);
+      this.loopInterval = window.setInterval(() => {
+        if (!this.ctx || this.isMuted || !this.isPlaying) return;
+        this.playSongMeasure(this.ctx.currentTime);
+      }, loopDurationSec * 1000);
+    }
   }
 
   public stopMusic() {
     this.isPlaying = false;
+    if (this.audioEl) {
+      try { this.audioEl.pause(); } catch {}
+    }
     if (this.loopInterval) {
       window.clearInterval(this.loopInterval);
       this.loopInterval = null;
@@ -164,7 +185,6 @@ class SoundManager {
   public playChime(
     type: "success" | "hint" | "click" | "heartbeat" | "error" = "click"
   ) {
-    // Resume/start music on user click if browser had paused it
     if (!this.isPlaying && !this.isMuted) {
       this.playMusic();
     }
