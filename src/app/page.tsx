@@ -116,12 +116,12 @@ export default function Home() {
           {isMuted ? (
             <>
               <VolumeX className="w-4 h-4 text-neutral-400" />
-              <span className="hidden sm:inline text-neutral-400">Muted</span>
+              <span className="hidden sm:inline text-neutral-400">Music Off</span>
             </>
           ) : (
             <>
               <Volume2 className="w-4 h-4 text-rose-400 animate-pulse" />
-              <span className="hidden sm:inline text-rose-200 font-serif italic">♪ I Wanna Be Yours</span>
+              <span className="hidden sm:inline text-rose-200 font-serif italic">♪ Arctic Monkeys - I Wanna Be Yours</span>
             </>
           )}
         </button>
@@ -136,6 +136,16 @@ export default function Home() {
           </button>
         )}
       </div>
+
+      {/* Arctic Monkeys - I Wanna Be Yours Official Audio Stream */}
+      {!isMuted && (
+        <iframe
+          src="https://www.youtube.com/embed/nyuo9-OjNNg?autoplay=1&loop=1&playlist=nyuo9-OjNNg&enablejsapi=1"
+          allow="autoplay"
+          className="hidden w-0 h-0 pointer-events-none opacity-0"
+          title="Arctic Monkeys - I Wanna Be Yours"
+        />
+      )}
 
       {/* Transition Overlay */}
       <div
