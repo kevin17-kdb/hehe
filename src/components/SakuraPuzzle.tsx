@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { storyContent } from "@/lib/storyContent";
@@ -61,7 +61,7 @@ export default function SakuraPuzzle({ onComplete }: SakuraPuzzleProps) {
     <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12 text-center max-w-4xl mx-auto pb-24">
       {/* Header */}
       <span className="text-pink-400/80 text-xs font-mono tracking-widest uppercase mb-1">
-        {chapter} • Japanese Sakura Garden
+        {chapter} ΓÇó Japanese Sakura Garden
       </span>
       <h2 className="font-serif-poetic text-2xl md:text-4xl text-neutral-100 font-semibold mb-1 text-glow-rose">
         {title}
@@ -147,7 +147,7 @@ export default function SakuraPuzzle({ onComplete }: SakuraPuzzleProps) {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full glass-card-subtle text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer"
           >
             <HelpCircle className="w-3.5 h-3.5 text-pink-400" />
-            <span>Need a little help? — Reveal Hint</span>
+            <span>Need a little help? ΓÇö Reveal Hint</span>
           </button>
           {showHintText && (
             <p className="text-xs text-pink-300 italic max-w-sm animate-fadeIn">

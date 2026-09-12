@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import {
   GameStage,
   GameProgress,
+  initialProgress,
   loadSavedProgress,
   saveProgress,
   resetProgress,
@@ -32,8 +33,15 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    const loaded = loadSavedProgress();
-    setProgress(loaded);
+    // Check url search params: ?resume=true to resume, otherwise start at opening
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("resume") === "true") {
+      const loaded = loadSavedProgress();
+      setProgress(loaded);
+    } else {
+      // Always start fresh from the opening poem
+      setProgress(initialProgress);
+    }
   }, []);
 
   const updateStage = (nextStage: GameStage) => {
